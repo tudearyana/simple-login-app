@@ -1,0 +1,15 @@
+@import 'tailwindcss';
+
+/* Definisikan "Design Tokens" atau variabel Anda di root */
+
+/* Style global dasar */
+ body {
+  font-family: 'Poppins', sans-serif; /* (Contoh jika Anda pakai Poppins) */
+  background-color: var(--bg-light-grey); /* Set warna latar belakang global */
+  color: var(--primary-text);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
