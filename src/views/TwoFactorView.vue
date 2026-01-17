@@ -20,12 +20,13 @@ const handleValidateTotp = async () => {
   }
   
   try {
-    const response = await authStore.validateTotp(authStore.user.id, totpCode.value)
+    await authStore.validateTotp(authStore.user.id, totpCode.value)
     
-    if (response.token || response.success) {
-      router.push('/')
-    }
+    console.log('TOTP validation successful, redirecting to home')
+    // Redirect to home after successful validation
+    router.push('/')
   } catch (err) {
+    console.error('TOTP validation failed:', err)
     error.value = err.message || 'Invalid TOTP code'
   }
 }
@@ -39,12 +40,13 @@ const handleValidateBackup = async () => {
   }
   
   try {
-    const response = await authStore.validateBackup(authStore.user.id, backupCode.value)
+    await authStore.validateBackup(authStore.user.id, backupCode.value)
     
-    if (response.token || response.success) {
-      router.push('/')
-    }
+    console.log('Backup validation successful, redirecting to home')
+    // Redirect to home after successful validation
+    router.push('/')
   } catch (err) {
+    console.error('Backup validation failed:', err)
     error.value = err.message || 'Invalid backup code'
   }
 }

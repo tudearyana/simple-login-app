@@ -31,6 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('response.id:', response?.id)
       console.log('response.username:', response?.username)
       console.log('response.email:', response?.email)
+      console.log('response.twoFactorStatus:', response?.twoFactorStatus)
       
       // Validasi response
       if (!response) {
@@ -42,34 +43,34 @@ export const useAuthStore = defineStore('auth', () => {
         const sessionIdInt = parseInt(response.sessionId, 10)
         sessionId.value = sessionIdInt
         console.log('✅ Auth store: sessionId saved as', sessionIdInt, 'type:', typeof sessionIdInt)
-      } else {
-        console.warn('⚠️ Auth store: No sessionId in response!', response)
       }
       
-      // ✅ Simpan user data dari response
+      // ✅ Simpan user data dari response (bahkan jika perlu 2FA)
       user.value = { 
         id: response.id,
         username: response.username || username, 
         email: response.email,
-        name: response.name || response.username || username 
+        name: response.name || response.username || username,
+        twoFactorStatus: response.twoFactorStatus || 'INACTIVE'
       }
       console.log('✅ Auth store: user data saved', user.value)
       
-      // Check jika perlu 2FA validation
-      if (response.requiresTwoFactor || response.requires2FA) {
+      // ✅ Check jika perlu 2FA validation berdasarkan twoFactorStatus
+      // Backend mengirim "ACTIVE" atau "INACTIVE" (uppercase)
+      if (response.twoFactorStatus === 'ACTIVE' || response.requiresTwoFactor || response.requires2FA) {
         requiresTwoFactor.value = true
         localStorage.setItem('user', JSON.stringify(user.value))
         loading.value = false
-        console.log('⚠️ Auth store: 2FA required')
+        console.log('⚠️ Auth store: 2FA ACTIVE - redirecting to /two-factor for validation')
         return { success: true, requiresTwoFactor: true }
       }
       
       // ✅ Token sudah disave di authService, tapi juga save ke state
-      if (response.jwtToken) {
-        token.value = response.jwtToken
+      // ✅ Token sudah disave di authService, tapi juga save ke state
+      const jwtToken = response.jwtToken || response.token
+      if (jwtToken) {
+        token.value = jwtToken
         console.log('✅ Auth store: token saved to state')
-      } else {
-        console.warn('⚠️ Auth store: No jwtToken found in response!', response)
       }
       
       localStorage.setItem('user', JSON.stringify(user.value))
@@ -135,13 +136,26 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      const response = await authService.validateTotp({ userId, otpCode })
+      // ✅ PENTING: Backend expects userId as INTEGER
+      const userIdInt = parseInt(userId, 10)
+      
+      console.log('=== VALIDATE TOTP REQUEST ===')
+      console.log('userId (original):', userId, 'type:', typeof userId)
+      console.log('userId (converted):', userIdInt, 'type:', typeof userIdInt)
+      console.log('otpCode:', otpCode)
+      console.log('Sending:', { userId: userIdInt, otpCode })
+      
+      const response = await authService.validateTotp({ userId: userIdInt, otpCode })
+      
+      console.log('✅ TOTP validation successful:', response)
       
       // Jika TOTP valid, update token dan clear 2FA flag
-      if (response.token) {
-        token.value = response.token
-        localStorage.setItem('token', response.token)
+      if (response.token || response.jwtToken) {
+        const newToken = response.token || response.jwtToken
+        token.value = newToken
+        localStorage.setItem('token', newToken)
         requiresTwoFactor.value = false
+        console.log('Token updated after TOTP validation')
       }
       
       loading.value = false
@@ -158,13 +172,26 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     
     try {
-      const response = await authService.validateBackup({ userId, otpCode })
+      // ✅ PENTING: Backend expects userId as INTEGER
+      const userIdInt = parseInt(userId, 10)
+      
+      console.log('=== VALIDATE BACKUP CODE REQUEST ===')
+      console.log('userId (original):', userId, 'type:', typeof userId)
+      console.log('userId (converted):', userIdInt, 'type:', typeof userIdInt)
+      console.log('otpCode:', otpCode)
+      console.log('Sending:', { userId: userIdInt, otpCode })
+      
+      const response = await authService.validateBackup({ userId: userIdInt, otpCode })
+      
+      console.log('✅ Backup validation successful:', response)
       
       // Jika backup code valid, update token dan clear 2FA flag
-      if (response.token) {
-        token.value = response.token
-        localStorage.setItem('token', response.token)
+      if (response.token || response.jwtToken) {
+        const newToken = response.token || response.jwtToken
+        token.value = newToken
+        localStorage.setItem('token', newToken)
         requiresTwoFactor.value = false
+        console.log('Token updated after backup validation')
       }
       
       loading.value = false

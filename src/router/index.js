@@ -32,14 +32,20 @@ const router = createRouter({
       meta: { guest: true }
     },
     {
-      path: '/two-factor',
-      name: 'two-factor',
+      path: '/validate/totp',
+      name: 'validate-totp',
       component: () => import('../views/TwoFactorView.vue')
     },
     {
       path: '/user-management',
       name: 'user-management',
       component: () => import('../views/UserManagementView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: () => import('../views/ProfilePage.vue'),
       meta: { requiresAuth: true }
     },
     {

@@ -20,8 +20,14 @@ apiClient.interceptors.request.use(
   (config) => {
     // Ambil token dari localStorage jika ada
     const token = localStorage.getItem('token')
+    console.log('[API Interceptor] Request to:', config.url)
+    console.log('[API Interceptor] Token from localStorage:', token ? token.substring(0, 20) + '...' : 'NO TOKEN')
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+      console.log('[API Interceptor] Added Authorization header')
+    } else {
+      console.warn('[API Interceptor] ⚠️ No token found in localStorage!')
     }
     return config
   },

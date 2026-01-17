@@ -21,8 +21,8 @@ const handleLogin = async () => {
     if (result.success) {
       // Check jika perlu 2FA validation
       if (result.requiresTwoFactor) {
-        console.log('2FA required, redirecting to /two-factor')
-        router.push('/two-factor')
+        console.log('2FA required, redirecting to /validate/totp')
+        router.push('/validate/totp')
       } else {
         console.log('Login successful, redirecting to home')
         router.push('/')

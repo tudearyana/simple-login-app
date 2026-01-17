@@ -18,12 +18,15 @@ export default defineConfig(({ mode }) => {
       proxy: {
         // Proxy semua request yang dimulai dengan /api ke backend
         '/api': {
-          target: 'http://10.58.205.17:8081',
+          // target: 'http://10.15.115.17:8081', // IP sebelumnya
+          target: 'http://192.168.254.223:8081',
           changeOrigin: true,
           secure: false,
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
               console.log('[PROXY] Request:', req.method, req.url);
+              console.log('[PROXY] Authorization header:', req.headers.authorization || 'NO AUTH HEADER');
+              
               // Tambahkan API key dari environment variable
               if (env.VITE_BACKEND_API_KEY) {
                 proxyReq.setHeader('X-API-Key', env.VITE_BACKEND_API_KEY);
